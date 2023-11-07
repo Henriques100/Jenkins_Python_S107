@@ -21,7 +21,10 @@ jobs:
         sh 'python --version'
         sh 'ls'
         sh 'pwd'
-        // Comandos de build do projeto aqui
+        sh '''
+            cd Jenkins_Python_S107/flask/requirements/build.in
+            build
+          '''
 
     - name: Test
       run: |
