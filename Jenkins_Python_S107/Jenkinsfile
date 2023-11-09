@@ -2,9 +2,7 @@ pipeline {
     agent {
         label 'ubuntu'
     }
-    options {
-        skipDefaultCheckout()
-    }
+   
     stages {
         stage('Set up Python') {
             steps {
