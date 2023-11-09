@@ -43,45 +43,14 @@ jobs:
 
     - name: Notifications
       run: |
-        echo 'Notifications...'
-        // Comandos de notificação aqui
-        sh '''
-        emailext (
-                  to: 'destinatario@exemplo.com',
-                  subject: 'Assunto da Notificação',
-                  body: 'Corpo da Notificação',
-                  )
-
-        '''
-        sh '''
-        slackSend (
-                   channel: '#canal',
-                   color: 'good',
-                   message: 'Mensagem de notificação no Slack',
-                  )
-        '''
-        sh '''
-        stage('Build') {
-              steps {
-                    // Seu processo de build
-                    }
-              post {
-                  success {
-                      echo 'O build foi bem-sucedido!'
-                      // Adicione ações de notificação aqui
-                  }
-                 failure {
-                      echo 'O build falhou!'
-                      // Adicione ações de notificação aqui
-                  }
-              }
-          }
-'''
-        sh'''
-          stage('Minha Etapa Personalizada') {
-              steps {
-                  echo 'Notificação personalizada'
-                  // Ou execute um script personalizado para notificação
-                    }
+      stage ('Notifications'){
+            steps {
+                echo 'Notifications'
+                sh '''
+                    # Adicione comandos relacionados às notificações
+                    cd scripts/
+                    chmod 777 *
+                    ./jenkins.sh
+                   '''
             }
- '''
+        }
