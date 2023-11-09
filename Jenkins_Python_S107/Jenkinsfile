@@ -1,87 +1,49 @@
-name: CI
-
-on: [push, pull_request]
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
-
-    - name: Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: 3.x
-
-    - name: Build
-      run: |
-        echo 'Building...'
-        sh 'python --version'
-        sh 'ls'
-        sh 'pwd'
-        sh '''
-            cd Jenkins_Python_S107/flask/requirements/build.in
-            build
-          '''
-
-    - name: Test
-      run: |
-        echo 'Testing...'
-        sh '''
-        python -m pip install --upgrade pip
-        pip install asgiref greenlet python-dotenv
-        pytest
-        '''
-        sh '''
-            cd Jenkins_Python_S107/flask
-            pytest
-            '''
-            archiveArtifacts 'Jenkins_Python_S107/flask/flash/tests'
-      continue-on-error: true
-
-    - name: Notifications
-      run: |
-        echo 'Notifications...'
-        // Comandos de notificação aqui
-        sh '''
-        emailext (
-                  to: 'destinatario@exemplo.com',
-                  subject: 'Assunto da Notificação',
-                  body: 'Corpo da Notificação',
-                  )
-
-        '''
-        sh '''
-        slackSend (
-                   channel: '#canal',
-                   color: 'good',
-                   message: 'Mensagem de notificação no Slack',
-                  )
-        '''
-        sh '''
-        stage('Build') {
-              steps {
-                    // Seu processo de build
-                    }
-              post {
-                  success {
-                      echo 'O build foi bem-sucedido!'
-                      // Adicione ações de notificação aqui
-                  }
-                 failure {
-                      echo 'O build falhou!'
-                      // Adicione ações de notificação aqui
-                  }
-              }
-          }
-'''
-        sh'''
-          stage('Minha Etapa Personalizada') {
-              steps {
-                  echo 'Notificação personalizada'
-                  // Ou execute um script personalizado para notificação
-                    }
+pipeline {
+    agent {
+        label 'ubuntu'
+    }
+    options {
+        skipDefaultCheckout()
+    }
+    stages {
+        stage('Set up Python') {
+            steps {
+                script {
+                    sh 'apt-get update && apt-get install -y python3'
+                }
             }
- '''
+        }
+        stage('Build') {
+            steps {
+                script {
+                    sh 'echo "Building..."'
+                    sh 'python --version'
+                    sh 'ls'
+                    sh 'cd Jenkins_Python_S107/flask/requirements/.'
+                }
+            }
+        }
+        stage('Test') {
+            steps {
+                script {
+                    sh 'echo "Testing..."'
+                    sh 'python -m pip install --upgrade pip'
+                    sh 'pip install asgiref greenlet python-dotenv'
+                    sh 'cd Jenkins_Python_S107/flask'
+                    sh 'pytest'
+                    archiveArtifacts 'Jenkins_Python_S107/flask/flash/tests'
+
+                }
+            }
+        }
+        stage('Notifications') {
+            steps {
+                script {
+                    sh 'echo "Notifications..."'
+                    sh 'echo "Enviando e-mail para luca.felipe@ges.inatel.br..."'
+                    sh 'echo "Enviando mensagem para o canal Slack..."'
+                }
+            }
+        }
+    }
+}
