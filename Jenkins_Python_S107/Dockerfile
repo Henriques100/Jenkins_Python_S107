@@ -14,4 +14,4 @@ RUN for file in flask/requirements/*; do pip3 install --no-cache-dir -r "$file";
 EXPOSE 5000
 
 # Define o comando a ser executado no início do contêiner
-CMD ["python", "run-tests.py"]
+CMD ["python"]

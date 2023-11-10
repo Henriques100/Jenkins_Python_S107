@@ -17,7 +17,7 @@ pipeline {
                     sh 'echo "Building..."'
                     sh 'python --version'
                     sh 'ls'
-                    sh 'cd Jenkins_Python_S107/flask/requirements/.'
+                    sh 'cd Jenkins_Python_S107/flask/requirements/ && ls *.txt'
                 }
             }
         }
@@ -34,10 +34,11 @@ pipeline {
                 }
             }
         }
+
         stage('Notifications') {
             steps {
                 script {
-                    sh 'echo "Notifications..."'
+                    sh 'echo "Notificação"'
                     sh 'echo "Enviando e-mail para luca.felipe@ges.inatel.br..."'
                     sh 'echo "Enviando mensagem para o canal Slack..."'
                 }
