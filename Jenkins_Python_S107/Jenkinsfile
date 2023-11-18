@@ -4,19 +4,10 @@ pipeline {
     }
    
     stages {
-        stage('Set up Python') {
-            steps {
-                script {
-                    sh 'apt-get update && apt-get install -y python3'
-                }
-            }
-        }
         stage('Build') {
             steps {
                 script {
                     sh 'echo "Building..."'
-                    sh 'python --version'
-                    sh 'ls'
                     sh 'cd Jenkins_Python_S107/flask/requirements/ && ls *.txt'
                 }
             }
@@ -25,8 +16,6 @@ pipeline {
             steps {
                 script {
                     sh 'echo "Testing..."'
-                    sh 'python -m pip install --upgrade pip'
-                    sh 'pip install asgiref greenlet python-dotenv'
                     sh 'cd Jenkins_Python_S107/flask'
                     sh 'pytest'
                     archiveArtifacts 'Jenkins_Python_S107/flask/flash/tests'
