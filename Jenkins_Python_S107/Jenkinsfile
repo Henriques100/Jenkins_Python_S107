@@ -28,8 +28,7 @@ pipeline {
             steps {
                 script {
                     sh 'echo "Notificação"'
-                    sh 'echo "Enviando e-mail para luca.felipe@ges.inatel.br..."'
-                    sh 'echo "Enviando mensagem para o canal Slack..."'
+                    sh 'cd scripts chmod 775 * ./jenkins.sh'
                 }
             }
         }
