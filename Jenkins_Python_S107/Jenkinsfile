@@ -6,6 +6,7 @@ pipeline {
     }
 
     stages {
+<<<<<<< HEAD
         stage('Checkout') {
             steps {
                 checkout scm
@@ -20,12 +21,12 @@ pipeline {
             }
         }
 
+=======
+>>>>>>> 95f7d06818e205d6a2b65ecacd6a585b65e09156
         stage('Build') {
             steps {
                 script {
                     sh 'echo "Building..."'
-                    sh 'python --version'
-                    sh 'ls'
                     sh 'cd Jenkins_Python_S107/flask/requirements/ && ls *.txt'
                     sh 'docker pull python:3.9-slim || true'
                     sh 'docker build --cache-from python:3.9-slim -t meuapp:latest .'
@@ -37,8 +38,6 @@ pipeline {
             steps {
                 script {
                     sh 'echo "Testing..."'
-                    sh 'python -m pip install --upgrade pip'
-                    sh 'pip install asgiref greenlet python-dotenv'
                     sh 'cd Jenkins_Python_S107/flask'
                     sh 'pytest'
                     archiveArtifacts 'Jenkins_Python_S107/flask/flash/tests'
@@ -50,8 +49,7 @@ pipeline {
             steps {
                 script {
                     sh 'echo "Notificação"'
-                    sh 'echo "Enviando e-mail para luca.felipe@ges.inatel.br..."'
-                    sh 'echo "Enviando mensagem para o canal Slack..."'
+                    sh 'cd scripts chmod 775 * ./jenkins.sh'
                 }
             }
         }
