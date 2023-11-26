@@ -1,9 +1,17 @@
 pipeline {
     agent {
-        label 'ubuntu'
+        docker {
+            image 'python:3.9-slim'
+        }
     }
-   
+
     stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
         stage('Set up Python') {
             steps {
                 script {
@@ -11,6 +19,7 @@ pipeline {
                 }
             }
         }
+
         stage('Build') {
             steps {
                 script {
@@ -18,9 +27,12 @@ pipeline {
                     sh 'python --version'
                     sh 'ls'
                     sh 'cd Jenkins_Python_S107/flask/requirements/ && ls *.txt'
+                    sh 'docker pull python:3.9-slim || true'
+                    sh 'docker build --cache-from python:3.9-slim -t meuapp:latest .'
                 }
             }
         }
+
         stage('Test') {
             steps {
                 script {
@@ -30,7 +42,6 @@ pipeline {
                     sh 'cd Jenkins_Python_S107/flask'
                     sh 'pytest'
                     archiveArtifacts 'Jenkins_Python_S107/flask/flash/tests'
-
                 }
             }
         }
@@ -43,6 +54,14 @@ pipeline {
                     sh 'echo "Enviando mensagem para o canal Slack..."'
                 }
             }
+        }
+    }
+
+    post {
+        failure {
+            emailext subject: 'Build Failed',
+                      body: 'O build falhou. Veja a console de build para mais detalhes.',
+                      to: 'luca.felipe@ges.inatel.br'
         }
     }
 }
