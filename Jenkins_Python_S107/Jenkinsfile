@@ -6,7 +6,6 @@ pipeline {
     }
 
     stages {
-<<<<<<< HEAD
         stage('Checkout') {
             steps {
                 checkout scm
@@ -21,8 +20,6 @@ pipeline {
             }
         }
 
-=======
->>>>>>> 95f7d06818e205d6a2b65ecacd6a585b65e09156
         stage('Build') {
             steps {
                 script {

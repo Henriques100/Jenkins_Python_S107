@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Define nossa imagem base
 FROM jenkins/jenkins
 
@@ -45,7 +44,7 @@ RUN apt-get clean
 
 # Define o usuário como jenkins
 USER jenkins
-=======
+
 # Usa a imagem oficial do Jenkins juntamente com a versão do python 3
 FROM jenkins/jenkins:lts-jdk11
 # Define o diretório de trabalho como /app
@@ -59,4 +58,3 @@ RUN apt-get update \
 
 # Itera sobre os arquivos de texto na pasta requirements e instala as dependências
 USER jenkins
->>>>>>> 95f7d06818e205d6a2b65ecacd6a585b65e09156

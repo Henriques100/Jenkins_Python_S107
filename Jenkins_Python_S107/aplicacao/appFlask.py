@@ -24,7 +24,7 @@ def index():
     cached_data = cache.get('my_cached_data')
     if not cached_data:
         cached_data = 'Data não encontrado no cache. Salvando no cache.'
-        cache.set('my_cached_data', cached_data)
+        cache.set('my_cached_data', cached_data, timeout=600) # Expira após 600 segundos
 
     return f'MySQL Data: {mysql_data}, Redis Cached Data: {cached_data}'
 
