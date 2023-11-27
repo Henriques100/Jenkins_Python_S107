@@ -6,27 +6,27 @@ set -e  # Aborta o script em caso de erro
 echo "Conteúdo do diretório atual:"
 ls
 
-# Muda para o diretório do projeto
-cd JENKINS_PYTHON_S107
+# Caminho do projeto
+PROJECT_DIR=$(pwd)/JENKINS_PYTHON_S107
 
 # Exibe o conteúdo do diretório do projeto
 echo -e "\nConteúdo do diretório do projeto:"
-ls
+ls $PROJECT_DIR
 
 # Mensagem informativa sobre a instalação das dependências do Python
 echo -e "\nInstalando as dependências do Python..."
 
 # Constrói a imagem Docker usando o Dockerfile
-docker build -t S107:latest .
+docker build -t S107:latest $PROJECT_DIR
 
 # Configuração do ambiente virtual
-docker run --rm -v "$(pwd):/flask" S107:latest python -m venv venv
-docker run --rm -v "$(pwd):/flask" S107:latest . venv/bin/activate
+docker run --rm -v "$PROJECT_DIR:/flask" S107:latest python -m venv venv
+docker run --rm -v "$PROJECT_DIR:/flask" S107:latest . venv/bin/activate
 
 # Instalação das dependências dos arquivos de requirements na pasta 'requirements'
-for file in flask/requirements/*; do
+for file in $PROJECT_DIR/flask/requirements/*; do
     if [ -f "$file" ]; then
-        docker run --rm -v "$(pwd):/flask" S107:latest pip install -r "$file"
+        docker run --rm -v "$PROJECT_DIR:/flask" S107:latest pip install -r "$file"
     fi
 done
 
