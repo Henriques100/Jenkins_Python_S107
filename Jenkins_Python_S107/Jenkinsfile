@@ -10,31 +10,18 @@ pipeline {
             steps {
                 script {
                     // Construir a imagem Docker usando o Dockerfile do Flask
-                    def dockerImage = docker.build('s107:latest', '-f Dockerfile .')
+                    def dockerImage = docker.build('flask-app:latest', '.')
 
                     // Executar o contêiner Docker com a aplicação Flask
-                    dockerImage.run('-v $PWD:/flask --name flask-app')
+                    dockerImage.run('--name flask-app')
 
                     // Executar os testes
-                    dockerImage.inside('-v $PWD:/flask') {
-                        sh 'venv/bin/python3 -m pytest'
+                    dockerImage.inside() {
+                        sh 'python -m pytest'
                     }
 
                     // Limpar o contêiner após os testes
                     sh 'docker rm -f flask-app'
-                }
-            }
-        }
-
-        stage('Test') {
-            steps {
-                script {
-                    sh 'echo "Testing..."'
-                    sh 'python -m pip install --upgrade pip'
-                    sh 'pip install asgiref greenlet python-dotenv'
-                    sh 'cd Jenkins_Python_S107/flask'
-                    sh 'pytest'
-                    archiveArtifacts 'Jenkins_Python_S107/flask/flash/tests'
                 }
             }
         }

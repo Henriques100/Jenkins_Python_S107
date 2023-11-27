@@ -1,33 +1,27 @@
-# Define nossa imagem base
+# Use a imagem base do Python
 FROM python:3.9-slim
 
-# Define nosso usuário dentro do container
-USER root
-
-# Instala o Git
-RUN apt-get update && apt-get install -y git
-
-# Define o diretório de trabalho
+# Defina o diretório de trabalho
 WORKDIR /app
 
-# Clona o repositório do Flask
-RUN git clone https://github.com/pallets/flask.git .
+# Adicionar um grupo com GID 1000
+RUN addgroup --gid 1000 mygroup
 
-# Instala as dependências do Flask
-RUN pip install --upgrade pip && pip install .
+# Adicionar um usuário com UID 1000 e pertencente ao grupo criado
+RUN useradd -m -s /bin/bash -u 1000 -g 1000 jenkins
 
-# Exponha a porta que a aplicação Flask estará escutando
+# Instale as dependências do sistema
+RUN apt-get update && \
+    apt-get install -y git
+
+# Clone o repositório do GitHub
+RUN git clone https://github.com/pallets/flask.git /app/flask
+
+# Instala as dependências do Flask a partir de todos os arquivos .txt no diretório requirements
+RUN find /app/flask/requirements -name "*.txt" -exec pip install -r {} \;
+
+# Exponha a porta 5000 para acessar o aplicativo Flask
 EXPOSE 5000
 
-# Comando para iniciar a aplicação quando o contêiner for iniciado
-CMD ["flask", "run", "--host=0.0.0.0"]
-
-
-# Instalando mailutils (opcional, se necessário)
-RUN apt-get install -y mailutils
-
-# Limpa arquivos baixados com apt-get
-RUN apt-get clean
-
-# Define o usuário como jenkins
-USER jenkins
+# Comando para iniciar o aplicativo Flask
+CMD ["python"]
