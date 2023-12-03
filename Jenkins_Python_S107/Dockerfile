@@ -1,27 +1,48 @@
-# Use a imagem base do Python
-FROM python:3.9-slim
+# Use a imagem base do Jenkins
+FROM jenkins/jenkins:latest
 
-# Defina o diretório de trabalho
-WORKDIR /app
-
-# Adicionar um grupo com GID 1000
-RUN addgroup --gid 1000 mygroup
-
-# Adicionar um usuário com UID 1000 e pertencente ao grupo criado
-RUN useradd -m -s /bin/bash -u 1000 -g 1000 jenkins
+# Defina o usuário root temporariamente para instalar dependências
+USER root
 
 # Instale as dependências do sistema
 RUN apt-get update && \
-    apt-get install -y git
+    apt-get install -y wget build-essential libssl-dev libffi-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev git
+
+# Faça o download e instale o Python
+RUN wget https://www.python.org/ftp/python/3.9.7/Python-3.9.7.tgz && \
+    tar xzf Python-3.9.7.tgz && \
+    cd Python-3.9.7 && \
+    ./configure --enable-optimizations && \
+    make -j 8 && \
+    make install && \
+    cd .. && \
+    rm -rf Python-3.9.7.tgz Python-3.9.7
+
+# Adicione um grupo com GID 1000 (caso não exista)
+RUN addgroup --gid 1000 mygroup || true
+
+# Adicione um usuário com UID 1000 e pertencente ao grupo criado
+RUN id -u jenkins &>/dev/null || useradd -m -s /bin/bash -u 1000 -g 1000 jenkins
 
 # Clone o repositório do GitHub
-RUN git clone https://github.com/pallets/flask.git /app/flask
+WORKDIR /app
+RUN git clone https://github.com/pallets/flask.git .
 
-# Instala as dependências do Flask a partir de todos os arquivos .txt no diretório requirements
-RUN find /app/flask/requirements -name "*.txt" -exec pip install -r {} \;
+# Crie o ambiente virtual e instale as dependências
+RUN python3 -m venv venv && \
+    venv/bin/pip install -U pip && \
+    venv/bin/pip install -r requirements/dev.txt && \
+    venv/bin/pip install -e .
+
+# Crie o diretório de cache e ajuste as permissões
+RUN mkdir -p /app/.pytest_cache && \
+    chown -R jenkins: /app/.pytest_cache && \
+    chmod -R 777 /app/.pytest_cache
+
+# Execute os testes como o usuário jenkins
+CMD ["venv/bin/pytest", "tests"]
 
 # Exponha a porta 5000 para acessar o aplicativo Flask
 EXPOSE 5000
 
-# Comando para iniciar o aplicativo Flask
-CMD ["python"]
+USER jenkins
