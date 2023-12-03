@@ -2,38 +2,45 @@
 
 set -e  # Aborta o script em caso de erro
 
+# Caminho do projeto
+PROJECT_DIR=$(pwd)/JENKINS_PYTHON_S107
+
 # Exibe o conteúdo do diretório atual
 echo "Conteúdo do diretório atual:"
 ls
 
-# Caminho do projeto
-PROJECT_DIR=$(pwd)/JENKINS_PYTHON_S107
-
 # Exibe o conteúdo do diretório do projeto
 echo -e "\nConteúdo do diretório do projeto:"
-ls $PROJECT_DIR
+ls "$PROJECT_DIR"
 
 # Mensagem informativa sobre a instalação das dependências do Python
-echo -e "\nInstalando as dependências do Python..."
+echo -e "\nConfigurando ambiente virtual e instalando dependências..."
 
-# Constrói a imagem Docker usando o Dockerfile
-docker build -t S107:latest $PROJECT_DIR
+# Configuração do ambiente virtual e instalação de dependências
+cd "$PROJECT_DIR/flask"
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements/dev.txt
 
-# Configuração do ambiente virtual
-docker run --rm -v "$PROJECT_DIR:/flask" S107:latest python -m venv venv
-docker run --rm -v "$PROJECT_DIR:/flask" S107:latest . venv/bin/activate
+# Etapa 'Build'
+echo -e "\nExecutando a etapa 'Build'..."
+# Adicione aqui comandos específicos para a etapa de construção, se necessário
 
-# Instalação das dependências dos arquivos de requirements na pasta 'requirements'
-for file in $PROJECT_DIR/flask/requirements/*; do
-    if [ -f "$file" ]; then
-        docker run --rm -v "$PROJECT_DIR:/flask" S107:latest pip install -r "$file"
-    fi
-done
+# Etapa 'Test'
+echo -e "\nExecutando a etapa 'Test'..."
+testResult=$(pytest tests)
+echo "Resultado dos testes: $testResult"
+currentBuildResult=$(if [ "$testResult" == "FAILED" ]; then echo "FAILURE"; else echo "SUCCESS"; fi)
 
-# Comandos específicos do seu aplicativo, como migrações de banco de dados, etc.
+# Etapa 'Notifications'
+echo -e "\nExecutando a etapa 'Notifications'..."
+echo 'Notificação'
+echo 'Enviando e-mail para luca.felipe@ges.inatel.br...'
+echo 'Enviando mensagem para o canal Slack...'
+# Adicione aqui comandos específicos para notificações, se necessário
 
-# Notificações
-echo -e "\nEnviando e-mail com mail do Linux"
-echo "Enviando e-mail com mail do Linux" | mail -s "um assunto" ${EMAIL_LIST}
+# Atualiza o resultado do build no Jenkins
+echo "Resultado final do build: $currentBuildResult"
+echo "##teamcity[buildStatus status='$currentBuildResult' text='Build $currentBuildResult']"
 
 echo -e "\nFim da instalação"

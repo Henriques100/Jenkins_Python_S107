@@ -1,7 +1,7 @@
 pipeline {
     agent {
         docker {
-            image 'python:3.9-slim'
+            image 'jenkins/jenkins'
         }
     }
 
@@ -9,19 +9,20 @@ pipeline {
         stage('Build') {
             steps {
                 script {
-                    // Construir a imagem Docker usando o Dockerfile do Flask
-                    def dockerImage = docker.build('flask-app:latest', '.')
+                    // Instalar dependências do Python
+                    sh 'apt-get update && apt-get install -y python3-venv'
+                    sh 'python3 -m venv venv'
+                    sh 'source venv/bin/activate && pip install -r requirements/dev.txt'
+                }
+            }
+        }
 
-                    // Executar o contêiner Docker com a aplicação Flask
-                    dockerImage.run('--name flask-app')
-
-                    // Executar os testes
-                    dockerImage.inside() {
-                        sh 'python -m pytest'
-                    }
-
-                    // Limpar o contêiner após os testes
-                    sh 'docker rm -f flask-app'
+        stage('Test') {
+            steps {
+                script {
+                    // Executar testes
+                    def testResult = sh(script: 'source venv/bin/activate && python3 testing.py', returnStatus: true)
+                    currentBuild.result = testResult == 0 ? 'SUCCESS' : 'FAILURE'
                 }
             }
         }
@@ -29,9 +30,14 @@ pipeline {
         stage('Notifications') {
             steps {
                 script {
-                    sh 'echo "Notificação"'
-                    sh 'echo "Enviando e-mail para luca.felipe@ges.inatel.br..."'
-                    sh 'echo "Enviando mensagem para o canal Slack..."'
+                    echo 'Notificação'
+                    echo 'Enviando e-mail para luca.felipe@ges.inatel.br...'
+                    echo 'Enviando mensagem para o canal Slack...'
+                    emailext subject: "Resultados dos Testes: ${currentBuild.result}",
+                              body: 'Veja os resultados dos testes na console de build.',
+                              to: 'luca.felipe@ges.inatel.br',
+                              replyTo: '$DEFAULT_REPLYTO',
+                              mimeType: 'text/html'
                 }
             }
         }
