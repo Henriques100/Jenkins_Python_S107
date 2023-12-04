@@ -1,17 +1,24 @@
-# Use a imagem base do Python
-FROM python:3.9-slim
-
-# Configuração do ambiente
+FROM python:3.8-slim-buster
+ 
+# Set the working directory in the container
 WORKDIR /app
-
-# Copie os arquivos de código e requisitos para o diretório de trabalho
-COPY . /app
-
-# Instale as dependências
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Exponha a porta 5000 para acessar o aplicativo Flask
+ 
+# Copy the requirements file into the container at /app
+COPY requirements.txt /app/
+ 
+# Install any needed packages specified in requirements.txt
+RUN pip install --upgrade pip && \
+    pip install -r requirements.txt
+ 
+# Copy the current directory contents into the container at /app
+COPY . /app/
+ 
+# Expose port 5000 for the Flask app to run on
 EXPOSE 5050
-
-# Comando para executar a aplicação Flask
-CMD ["python", "app.py"]
+ 
+# Define environment variables
+ENV FLASK_APP=appFlask.py
+ENV FLASK_RUN_HOST=0.0.0.0
+ 
+# Run app.py when the container launches
+CMD ["flask", "run"]

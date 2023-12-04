@@ -1,5 +1,5 @@
-Flask==2.1.0
+Flask>=2.2
 Flask-SQLAlchemy==3.0
 Flask-Caching==1.10.1
 mysql-connector-python==8.0.28
-redis==3.7.3
+redis
