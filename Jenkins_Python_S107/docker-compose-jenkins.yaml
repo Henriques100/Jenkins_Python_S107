@@ -1,4 +1,4 @@
-version: '3.8'
+version: '3'
 
 services:
   mysql_db:
@@ -11,12 +11,19 @@ services:
       MYSQL_USER: myuser
       MYSQL_PASSWORD: mypassword
       MYSQL_ROOT_PASSWORD: rootpassword
+    volumes:
+      - mysql_data:/var/lib/mysql
 
   redis:
     image: redis:latest
     container_name: redis
     ports:
       - 6379:6379
+    volumes:
+      - redis_data:/data
+    environment:
+      REDIS_PASSWORD: s107-projeto
+
 
   flask_app:
     build:
@@ -24,7 +31,16 @@ services:
       dockerfile: Dockerfile
     container_name: flask-app
     ports:
-      - 5050:5050
+      - 5000:5000
     depends_on:
       - mysql_db
       - redis
+    environment:
+      - FLASK_RUN_HOST=0.0.0.0
+      - SQLALCHEMY_DATABASE_URI=mysql://myuser:mypassword@mysql-db:3306/mydatabase
+      - CACHE_TYPE=redis
+      - CACHE_KEY_PREFIX=test_results
+
+volumes:
+  mysql_data:
+  redis_data:
