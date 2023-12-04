@@ -6,6 +6,21 @@ pipeline {
     }
 
     stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Set up Python') {
+            steps {
+                script {
+                    sh 'apt-get update && apt-get install -y python3'
+                }
+            }
+        }
+
+
         stage('Build') {
             steps {
                 script {
