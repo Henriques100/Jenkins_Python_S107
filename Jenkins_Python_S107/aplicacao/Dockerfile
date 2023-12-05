@@ -1,5 +1,6 @@
 FROM python:3.8-slim-buster
- 
+
+USER root
 # Set the working directory in the container
 WORKDIR /app
  
@@ -22,3 +23,5 @@ ENV FLASK_RUN_HOST=0.0.0.0
  
 # Run app.py when the container launches
 CMD ["flask", "run"]
+
+USER jenkins
