@@ -16,11 +16,8 @@ ls "$PROJECT_DIR"
 # Mensagem informativa sobre a instalação das dependências do Python
 echo -e "\nConfigurando ambiente virtual e instalando dependências..."
 
-# Configuração do ambiente virtual e instalação de dependências
-cd "$PROJECT_DIR/flask"
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements/dev.txt
+# Construir a aplicação Flask
+docker build -t flask-app -f "$PROJECT_DIR/aplicacao/Dockerfile" "$PROJECT_DIR/aplicacao"
 
 # Etapa 'Build'
 echo -e "\nExecutando a etapa 'Build'..."
@@ -28,7 +25,7 @@ echo -e "\nExecutando a etapa 'Build'..."
 
 # Etapa 'Test'
 echo -e "\nExecutando a etapa 'Test'..."
-testResult=$(pytest tests)
+testResult=$(docker run -it --rm flask-app pytest tests)
 echo "Resultado dos testes: $testResult"
 currentBuildResult=$(if [ "$testResult" == "FAILED" ]; then echo "FAILURE"; else echo "SUCCESS"; fi)
 
