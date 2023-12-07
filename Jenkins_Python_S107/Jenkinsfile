@@ -6,7 +6,7 @@ pipeline {
         MYSQL_PASSWORD = 'mypassword'
         MYSQL_DATABASE = 'mydatabase'
         MYSQL_HOST = 'mysql-db'
-        MYSQL_PORT = '3306'
+        MYSQL_PORT = '3310'
         REDIS_HOST = 'redis'
         REDIS_PORT = '6379'
     }
