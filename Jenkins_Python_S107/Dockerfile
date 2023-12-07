@@ -1,38 +1,47 @@
-# Use a imagem base do Jenkins
-FROM jenkins/jenkins:latest
+# Use the Jenkins LTS (Long Term Support) image
+FROM jenkins/jenkins:lts
 
-# Defina o usuário root temporariamente para instalar dependências
+# Switch to root user to install dependencies
 USER root
 
-# Instale as dependências do sistema e o Python 3
+# Install necessary packages
 RUN apt-get update && \
     apt-get install -y wget build-essential libssl-dev libffi-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev git python3 python3-venv
 
-# Adicione um grupo com GID 1000 (caso não exista)
-RUN addgroup --gid 1000 mygroup || true
+# Create a Jenkins user
+RUN addgroup --gid 1000 mygroup || true && \
+    id -u jenkins &>/dev/null || useradd -m -s /bin/bash -u 1000 -g 1000 jenkins
 
-# Adicione um usuário com UID 1000 e pertencente ao grupo criado
-RUN id -u jenkins &>/dev/null || useradd -m -s /bin/bash -u 1000 -g 1000 jenkins
-
-# Clone o repositório do GitHub
+# Set the working directory
 WORKDIR /app
+
+# Clone the GitHub repository
 RUN git clone https://github.com/pallets/flask.git .
 
-# Crie o ambiente virtual e instale as dependências
+# Create a virtual environment and install dependencies
 RUN python3 -m venv venv && \
     venv/bin/pip install -U pip && \
-    venv/bin/pip install -r requirements/dev.txt && \
-    venv/bin/pip install -e .
+    venv/bin/pip install -r requirements/dev.txt
 
-# Crie o diretório de cache e ajuste as permissões
+# Copy the requirements.txt file for the application
+COPY ./aplicacao/requirements.txt /app/aplicacao/requirements.txt
+
+# Install application dependencies
+RUN venv/bin/pip install -r /app/aplicacao/requirements.txt
+
+# Create a cache directory and adjust permissions
 RUN mkdir -p /app/.pytest_cache && \
     chown -R jenkins: /app/.pytest_cache && \
     chmod -R 777 /app/.pytest_cache
 
-# Execute os testes como o usuário jenkins
-CMD ["tail", "-f", "/dev/null"]
+# Copy the Flask application
+COPY ./aplicacao/appFlask.py /app/appFlask.py
 
-# Exponha a porta 5000 para acessar o aplicativo Flask
-EXPOSE 50000
-
+# Switch back to the Jenkins user
 USER jenkins
+
+# Set the command to run the Flask application
+CMD ["venv/bin/python", "/app/appFlask.py"]
+
+# Expose port 5000 for Flask
+EXPOSE 5000

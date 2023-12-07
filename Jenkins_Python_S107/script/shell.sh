@@ -38,6 +38,7 @@ echo 'Enviando mensagem para o canal Slack...'
 
 # Atualiza o resultado do build no Jenkins
 echo "Resultado final do build: $currentBuildResult"
+# Este comando é específico para o TeamCity. Adapte conforme necessário.
 echo "##teamcity[buildStatus status='$currentBuildResult' text='Build $currentBuildResult']"
 
 echo -e "\nFim da instalação"

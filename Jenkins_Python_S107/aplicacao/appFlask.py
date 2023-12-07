@@ -4,32 +4,33 @@ from flask_caching import Cache
 import redis
 import time
 import os
+import psycopg2
 
 app = Flask(__name__)
 
-# Configuração do MySQL
-mysql_user = os.environ.get('MYSQL_USER', 'myuser')
-mysql_password = os.environ.get('MYSQL_PASSWORD', 'mypassword')
-mysql_database = os.environ.get('MYSQL_DATABASE', 'mydatabase')
-mysql_host = os.environ.get('MYSQL_HOST', 'mysql-db')
-mysql_port = int(os.environ.get('MYSQL_PORT', 3306))
+# Configuração do PostgreSQL
+POSTGRES_USER = os.environ.get('POSTGRES_USER', 'postgres')
+POSTGRES_PASSWORD = os.environ.get('POSTGRES_PASSWORD', 'mypassword')
+POSTGRES_DATABASE = os.environ.get('POSTGRES_DATABASE', 'mydatabase')
+POSTGRES_HOST = os.environ.get('POSTGRES_HOST', 'postgres-db')
+POSTGRES_PORT = int(os.environ.get('POSTGRES_PORT', 5432))
 
-# Configuração do Redis
-redis_host = os.environ.get('REDIS_HOST', 'redis')
-redis_port = int(os.environ.get('REDIS_PORT', 6379))
-redis_password = os.environ.get('REDIS_PASSWORD', None)
-
-# Use as variáveis de ambiente para conectar ao MySQL
-app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql://{mysql_user}:{mysql_password}@{mysql_host}:{mysql_port}/{mysql_database}'
+# Use as variáveis de ambiente para conectar ao PostgreSQL
+app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}:{POSTGRES_PORT}/{POSTGRES_DATABASE}'
 db = SQLAlchemy(app)
 
 # Configuração do Redis
+REDIS_HOST = os.environ.get('REDIS_HOST', 'redis')
+REDIS_PORT = int(os.environ.get('REDIS_PORT', 6379))
+REDIS_PASSWORD = os.environ.get('REDIS_PASSWORD', None)
+
+# Use as variáveis de ambiente para conectar ao Redis
 app.config['CACHE_TYPE'] = 'redis'
 app.config['CACHE_KEY_PREFIX'] = 'test_results'
 cache = Cache(app)
 
 # Configure o cliente Redis
-redis_client = redis.StrictRedis(host=redis_host, port=redis_port, password=redis_password, decode_responses=True)
+redis_client = redis.StrictRedis(host=REDIS_HOST, port=REDIS_PORT, password=REDIS_PASSWORD, decode_responses=True)
 
 class TestResult(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -50,18 +51,17 @@ def index():
     execution_time = end_time - start_time
 
     try:
-        # Armazena o resultado do teste no MySQL
+        # Armazena o resultado do teste no PostgreSQL
         new_result = TestResult(test_name='Teste 1', result=test_result, execution_time=execution_time)
         db.session.add(new_result)
         db.session.commit()
 
         # Armazena o tempo de execução no Redis
         cache_key = 'execution_time_test_1'
-        cached_execution_time = cache.get(cache_key)
-        if not cached_execution_time:
-            cache.set(cache_key, execution_time, timeout=None)  # Sem expiração
+        if cache.get(cache_key) is None:
+            cache.set(cache_key, execution_time, timeout=None)
 
-        # Recupera os resultados dos testes do MySQL
+        # Recupera os resultados dos testes do PostgreSQL
         test_results = TestResult.query.all()
 
         return render_template('index.html', test_results=test_results)
@@ -70,4 +70,3 @@ def index():
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0')
- 

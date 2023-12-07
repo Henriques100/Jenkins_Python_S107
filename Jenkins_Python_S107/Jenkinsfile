@@ -1,16 +1,6 @@
 pipeline {
     agent any
 
-    environment {
-        MYSQL_USER = 'myuser'
-        MYSQL_PASSWORD = 'mypassword'
-        MYSQL_DATABASE = 'mydatabase'
-        MYSQL_HOST = 'mysql-db'
-        MYSQL_PORT = '3306'
-        REDIS_HOST = 'redis'
-        REDIS_PORT = '6379'
-    }
-
     stages {
         stage('Checkout') {
             steps {
@@ -18,11 +8,20 @@ pipeline {
             }
         }
 
-        stage('Build') {
+        stage('Test') {
             steps {
                 script {
-                    // Construir a aplicação Flask
-                    docker.build("flask-app", "-f aplicacao/Dockerfile .")
+                    // Executar testes no contêiner da aplicação Flask
+                    sh 'docker-compose exec flask-app pytest tests'
+                }
+            }
+        }
+
+        stage('Descobrir caminho da tabela') {
+            steps {
+                script {
+                    // Execute o comando 'ls' para listar o conteúdo do diretório
+                    sh 'ls -R /app'
                 }
             }
         }
@@ -55,37 +54,21 @@ pipeline {
             }
         }
 
-        stage('Test') {
+        stage('Email') {
             steps {
                 script {
-                    // Executar testes no contêiner da aplicação Flask
-                    try {
-                        sh 'docker-compose exec flask-app pytest tests'
-                    } catch (Exception e) {
-                        echo "Erro durante a execução dos testes: ${e.message}"
-                        currentBuild.result = 'FAILURE'
-                        error "Erro durante a execução dos testes"
-                    }
-                }
-            }
-        }
-
-        stage('Notifications') {
-            steps {
-                script {
-                    echo 'Sending Notifications...'
-
-                    // Enviar e-mail em caso de falha
-                    def emailSubject = 'Build Failed'
-                    def emailBody = 'O build falhou. Verifique a console de build para mais detalhes.'
-                    def emailAddress = 'luca.felipe@ges.inatel.br'
-
-                    if (currentBuild.result == 'FAILURE') {
-                        echo 'Build falhou, enviando e-mail de notificação.'
-                        emailext subject: emailSubject, body: emailBody, to: emailAddress
-                    } else {
-                        echo 'Build bem-sucedido, nenhum e-mail enviado.'
-                    }
+                    // Enviar e-mail com a tabela do SQL
+                    emailext (
+                        subject: "Resultados dos testes com Tabela SQL",
+                        body: '''<p>Olá,</p>
+                                <p>Os resultados dos testes do aplicativo foram bem-sucedidos.</p>
+                                <p>Anexei a tabela de resultados dos testes do SQL.</p>
+                                <p>Atenciosamente,<br/>
+                                [Seu nome]</p>''',
+                        to: "luca.felipe@ges.inatel.br",
+                        mimeType: 'text/html',
+                        attachmentsPattern: '/app/tabela.sql'
+                    )
                 }
             }
         }
