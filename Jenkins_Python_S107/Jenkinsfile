@@ -11,7 +11,7 @@ pipeline {
         stage('Test') {
             steps {
                 script {
-                    // Executar testes no contêiner da aplicação Flask
+                    // Execute tests in the Flask application container
                     sh 'docker-compose exec flask-app pytest tests'
                 }
             }
@@ -20,7 +20,7 @@ pipeline {
         stage('Descobrir caminho da tabela') {
             steps {
                 script {
-                    // Execute o comando 'ls' para listar o conteúdo do diretório
+                    // Execute the 'ls' command to list the contents of the directory
                     sh 'ls -R /app'
                 }
             }
@@ -29,11 +29,11 @@ pipeline {
         stage('Deploy') {
             steps {
                 script {
-                    // Subir os serviços definidos no docker-compose
+                    // Bring up the services defined in docker-compose
                     sh 'docker-compose up -d'
 
-                    // Aguardar até que o MySQL e o Redis estejam prontos
-                    sh 'docker-compose exec flask-app wait-for-it.sh mysql-db:3306 --timeout=60 --strict -- echo "MySQL is up"'
+                    // Wait for PostgreSQL and Redis to be ready
+                    sh 'docker-compose exec flask-app wait-for-it.sh postgres-db:5432 --timeout=60 --strict -- echo "PostgreSQL is up"'
                     sh 'docker-compose exec flask-app wait-for-it.sh redis:6379 --timeout=60 --strict -- echo "Redis is up"'
                 }
             }
@@ -42,13 +42,13 @@ pipeline {
         stage('Database Setup') {
             steps {
                 script {
-                    // Executar as migrações no contêiner da aplicação Flask
+                    // Run migrations in the Flask application container
                     try {
                         sh 'docker-compose exec flask-app flask db upgrade'
                     } catch (Exception e) {
-                        echo "Erro durante a execução do Database Setup: ${e.message}"
+                        echo "Error during Database Setup: ${e.message}"
                         currentBuild.result = 'FAILURE'
-                        error "Erro durante a execução do Database Setup"
+                        error "Error during Database Setup"
                     }
                 }
             }
@@ -57,14 +57,14 @@ pipeline {
         stage('Email') {
             steps {
                 script {
-                    // Enviar e-mail com a tabela do SQL
+                    // Send an email with the SQL table
                     emailext (
-                        subject: "Resultados dos testes com Tabela SQL",
-                        body: '''<p>Olá,</p>
-                                <p>Os resultados dos testes do aplicativo foram bem-sucedidos.</p>
-                                <p>Anexei a tabela de resultados dos testes do SQL.</p>
-                                <p>Atenciosamente,<br/>
-                                [Seu nome]</p>''',
+                        subject: "Test Results with SQL Table",
+                        body: '''<p>Hello,</p>
+                                <p>The test results of the application were successful.</p>
+                                <p>Attached is the table of test results from SQL.</p>
+                                <p>Best regards,<br/>
+                                [Your name]</p>''',
                         to: "luca.felipe@ges.inatel.br",
                         mimeType: 'text/html',
                         attachmentsPattern: '/app/tabela.sql'
@@ -76,7 +76,7 @@ pipeline {
 
     post {
         always {
-            // Limpar os contêineres e volumes após a execução
+            // Clean up containers and volumes after execution
             sh 'docker-compose down -v'
         }
     }
