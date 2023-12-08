@@ -4,7 +4,6 @@ from flask_caching import Cache
 import redis
 import time
 import os
-import psycopg2
 
 app = Flask(__name__)
 
@@ -69,4 +68,5 @@ def index():
         return f"Erro durante a execução: {str(e)}"
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0')
+    app.run(debug=True, host='0.0.0.0', port=5000)
+

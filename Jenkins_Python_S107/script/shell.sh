@@ -17,7 +17,7 @@ ls "$PROJECT_DIR"
 echo -e "\nConfigurando ambiente virtual e instalando dependências..."
 
 # Construir a aplicação Flask
-docker build -t flask-app -f "$PROJECT_DIR/aplicacao/Dockerfile" "$PROJECT_DIR/aplicacao"
+docker build -t flask-app -f "$PROJECT_DIR/Dockerfile" "$PROJECT_DIR/aplicacao"
 
 # Etapa 'Build'
 echo -e "\nExecutando a etapa 'Build'..."
